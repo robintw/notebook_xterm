@@ -15,7 +15,7 @@ function TerminalClient(elem) {
     require(['xterm'], function(Terminal) {
         var termArea = this.create_ui(elem);
         this.term = new Terminal({
-            rows: 25,
+            rows: 15,
             cols: 100
         });
         this.term.open(termArea[0]);
