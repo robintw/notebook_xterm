@@ -4,13 +4,50 @@ var BACKOFF_RATE = 1.8;
 var PY_XTERM_INSTANCE = 'get_ipython().find_magic("xterm").__self__';
 var PY_TERMINAL_SERVER = PY_XTERM_INSTANCE + '.getTerminalServer()';
 
-function b64DecodeUnicode(str) {
-    // From https://stackoverflow.com/questions/30106476/using-javascripts-atob-to-decode-base64-doesnt-properly-decode-utf-8-strings
-    // Going backwards: from bytestream, to percent-encoding, to original string.
-    return decodeURIComponent(atob(str).split('').map(function (c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-}
+// From https://stackoverflow.com/questions/30106476/using-javascripts-atob-to-decode-base64-doesnt-properly-decode-utf-8-strings
+var clz32 = Math.clz32 || (function (log, LN2) {
+    "use strict";
+    return function (x) {
+        return 31 - log(x >>> 0) / LN2 | 0
+    };
+})(Math.log, Math.LN2);
+var fromCharCode = String.fromCharCode;
+var atobUTF8 = (function (atob, replacer) {
+    "use strict";
+    return function (inputString, keepBOM) {
+        inputString = atob(inputString);
+        if (!keepBOM && inputString.substring(0, 3) === "\xEF\xBB\xBF")
+            inputString = inputString.substring(3); // eradicate UTF-8 BOM
+        // 0xc0 => 0b11000000; 0xff => 0b11111111; 0xc0-0xff => 0b11xxxxxx
+        // 0x80 => 0b10000000; 0xbf => 0b10111111; 0x80-0xbf => 0b10xxxxxx
+        return inputString.replace(/[\xc0-\xff][\x80-\xbf]*/g, replacer);
+    }
+})(atob, function (encoded) {
+    "use strict";
+    var codePoint = encoded.charCodeAt(0) << 24;
+    var leadingOnes = clz32(~codePoint);
+    var endPos = 0,
+        stringLen = encoded.length;
+    var result = "";
+    if (leadingOnes < 5 && stringLen >= leadingOnes) {
+        codePoint = (codePoint << leadingOnes) >>> (24 + leadingOnes);
+        for (endPos = 1; endPos < leadingOnes; ++endPos)
+            codePoint = (codePoint << 6) | (encoded.charCodeAt(endPos) & 0x3f /*0b00111111*/ );
+        if (codePoint <= 0xFFFF) { // BMP code point
+            result += fromCharCode(codePoint);
+        } else if (codePoint <= 0x10FFFF) {
+            // https://mathiasbynens.be/notes/javascript-encoding#surrogate-formulae
+            codePoint -= 0x10000;
+            result += fromCharCode(
+                (codePoint >> 10) + 0xD800, // highSurrogate
+                (codePoint & 0x3ff) + 0xDC00 // lowSurrogate
+            );
+        } else endPos = 0; // to fill it in with INVALIDs
+    }
+    for (; endPos < stringLen; ++endPos) result += "\ufffd"; // replacement character
+    return result;
+});
+
 
 function TerminalClient(elem) {
     this.closed = false;
@@ -109,7 +146,6 @@ TerminalClient.prototype.server_exec = function(cmd) {
             }.bind(this)
         }
     });
-    // this.update_com_indicator();
 }
 
 TerminalClient.prototype.poll_server = function() {
@@ -133,7 +169,7 @@ TerminalClient.prototype.receive_data_callback = function(data) {
     }
 
     try {
-        var decoded = b64DecodeUnicode(data.content.text);
+        var decoded = atobUTF8(data.content.text);
         this.term.write(decoded);
     }
     catch(e) {
@@ -148,11 +184,9 @@ TerminalClient.prototype.receive_data_callback = function(data) {
             message += "See browser console for more details.\r\n";
         }
         console.log(data.content);
+        console.error("%O", e)
         this.handle_title('error');
-        this.term.write(message);
-        this.close();
-    }
-
+        this.term.write(message);    }
 }
 TerminalClient.prototype.handle_transmit = function(data) {
     // we've had interaction, so reset the timer for the next poll
@@ -187,6 +221,7 @@ TerminalClient.prototype.close = function() {
 }
 // create the TerminalClient instance (only once!)
 if (window.terminalClient) {
+    console.log('Closing from if term client')
     window.terminalClient.close()
     delete window.terminalClient;
 }

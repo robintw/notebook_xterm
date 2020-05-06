@@ -11,7 +11,7 @@ class TerminalServer:
         if self.pid == pty.CHILD:
             # we are in the forked process
             # blow it away and replace with a shell
-            os.execvp('bash',['bash'])
+            os.execvpe('bash',['bash'], os.environ)
         else:
             tty.setraw(self.fd, termios.TCSANOW)
 
