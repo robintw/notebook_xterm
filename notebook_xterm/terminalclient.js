@@ -54,7 +54,7 @@ function TerminalClient(elem) {
     // require xterm.js
     require.config({
       paths: {
-          xterm: '//cdn.jsdelivr.net/npm/xterm@4.9.0/lib/xterm.min.js'
+          xterm: '//cdnjs.cloudflare.com/ajax/libs/xterm/4.9.0/xterm.min'
       }
     });
 
