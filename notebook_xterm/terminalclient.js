@@ -54,7 +54,7 @@ function TerminalClient(elem) {
     // require xterm.js
     require.config({
       paths: {
-          xterm: '//cdnjs.cloudflare.com/ajax/libs/xterm/4.9.0/xterm.min'
+          xterm: '//cdnjs.cloudflare.com/ajax/libs/xterm/2.9.2/xterm.min'
       }
     });
 
@@ -101,7 +101,7 @@ function TerminalClient(elem) {
 }
 
 TerminalClient.prototype.create_ui = function(elem) {
-    var INITIAL_TITLE = 'Interactive terminal'
+    var INITIAL_TITLE = 'notebook_xterm'
     // add xterm stylesheet for formatting
     var xtermCssUrl = 'https://cdnjs.cloudflare.com/ajax/libs/xterm/2.9.2/xterm.min.css'
     $('<link/>', {rel: 'stylesheet', href: xtermCssUrl}).appendTo('head');
@@ -123,7 +123,6 @@ TerminalClient.prototype.create_ui = function(elem) {
         overflow: 'hidden',
         borderBottom: '1px solid #AAA'
     })
-    this.titleBar.addClass('notebook_title');
     this.titleText = $('<div>').html(INITIAL_TITLE).css({float: 'left'}).appendTo(this.titleBar);
     this.comIndicator = $('<div>').html('&middot;').css({float: 'left', marginLeft: 10}).hide().appendTo(this.titleBar);
     this.close_button = $('<div>').html('<a onclick="window.terminalClient.close()">close</a>').css({float: 'right'}).appendTo(this.titleBar);
