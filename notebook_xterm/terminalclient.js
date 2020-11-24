@@ -54,7 +54,7 @@ function TerminalClient(elem) {
     // require xterm.js
     require.config({
       paths: {
-          xterm: '//cdnjs.cloudflare.com/ajax/libs/xterm/2.9.2/xterm.min'
+          xterm: '//cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.min'
       }
     });
 
@@ -103,7 +103,7 @@ function TerminalClient(elem) {
 TerminalClient.prototype.create_ui = function(elem) {
     var INITIAL_TITLE = 'notebook_xterm'
     // add xterm stylesheet for formatting
-    var xtermCssUrl = 'https://cdnjs.cloudflare.com/ajax/libs/xterm/2.9.2/xterm.min.css'
+    var xtermCssUrl = 'https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.min.css'
     $('<link/>', {rel: 'stylesheet', href: xtermCssUrl}).appendTo('head');
 
     this.wrap = $('<div>').appendTo(elem);
