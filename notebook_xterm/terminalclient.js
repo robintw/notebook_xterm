@@ -101,7 +101,7 @@ function TerminalClient(elem) {
 }
 
 TerminalClient.prototype.create_ui = function(elem) {
-    var INITIAL_TITLE = 'notebook_xterm'
+    var INITIAL_TITLE = 'Interactive terminal'
     // add xterm stylesheet for formatting
     var xtermCssUrl = 'https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.min.css'
     $('<link/>', {rel: 'stylesheet', href: xtermCssUrl}).appendTo('head');
