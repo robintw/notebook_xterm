@@ -63,7 +63,11 @@ function TerminalClient(elem) {
         var termArea = this.create_ui(elem);
         this.term = new Terminal({
             rows: 15,
-            cols: 100
+            cols: 100,
+            theme: {
+                background: 'white',
+                foreground: 'black'
+            }
         });
         this.term.open(termArea[0]);
 
